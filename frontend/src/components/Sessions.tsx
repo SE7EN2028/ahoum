@@ -1,36 +1,52 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import gsap from "gsap";
 import { useApp } from "../auth/AppContext";
-import { catDefs, enrich, modeDefs, sessions, type EnrichedSession } from "../data/content";
+import { catDefs, modeDefs, type EnrichedSession } from "../data/content";
+import { api, type ApiBooking, type ApiSession } from "../lib/api";
+import { bookingErrorMessage, mapSession } from "../lib/sessions";
 import { Search } from "../lib/icons";
 import { Eyebrow } from "./ui";
 import SessionCard from "./SessionCard";
+import SessionSkeleton from "./SessionSkeleton";
 
 const prefersReduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function Sessions() {
-  const { user, openLogin, toast } = useApp();
+  const { user, token, openLogin, toast } = useApp();
+  const qc = useQueryClient();
+  const [qInput, setQInput] = useState("");
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [mode, setMode] = useState("all");
   const grid = useRef<HTMLDivElement>(null);
 
-  const filtered = useMemo(() => {
-    const ql = q.trim().toLowerCase();
-    return sessions
-      .filter((s) => (cat === "all" || s.cat === cat) && (mode === "all" || s.mode === mode) && (!ql || `${s.title} ${s.creator} ${s.catLabel}`.toLowerCase().includes(ql)))
-      .map(enrich);
-  }, [q, cat, mode]);
+  // debounce the search box so we don't refetch on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setQ(qInput), 250);
+    return () => clearTimeout(t);
+  }, [qInput]);
 
+  const params = new URLSearchParams();
+  if (cat !== "all") params.set("category", cat);
+  if (mode !== "all") params.set("mode", mode);
+  if (q.trim()) params.set("q", q.trim());
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["sessions", cat, mode, q],
+    queryFn: () => api<ApiSession[]>(`/sessions/?${params.toString()}`),
+    placeholderData: keepPreviousData,
+  });
+
+  const filtered = (data ?? []).map(mapSession);
+  const count = filtered.length;
   const filterKey = `${cat}|${mode}|${filtered.map((s) => s.id).join(",")}`;
 
-  // GSAP: stagger the tiles in on load and on every filter change.
-  // gsap.from() keeps the natural state visible, so content never gates on the
-  // animation running; clearProps wipes inline styles once it settles.
+  // GSAP: stagger the tiles in on load and on every result change.
   useGSAP(
     () => {
-      if (prefersReduced()) return; // cards stay visible, no motion
+      if (prefersReduced() || isLoading) return;
       gsap.from(".sess-card", {
         opacity: 0,
         y: 16,
@@ -41,17 +57,35 @@ export default function Sessions() {
         clearProps: "opacity,transform",
       });
     },
-    { scope: grid, dependencies: [filterKey] },
+    { scope: grid, dependencies: [filterKey, isLoading] },
   );
 
-  const count = filtered.length;
-  const countLabel = count === 0 ? "No sessions match your filters" : `${count} session${count === 1 ? "" : "s"} you can join this week`;
+  const bookMutation = useMutation({
+    mutationFn: (sessionId: number) =>
+      api<ApiBooking>("/bookings/", { method: "POST", token: token ?? undefined, body: { session_id: sessionId } }),
+    onSuccess: () => {
+      toast("Seat reserved. See you there.");
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+    onError: (err: Error) => toast(bookingErrorMessage(err.message)),
+  });
 
   const onBook = (s: EnrichedSession) => {
     if (!user) return openLogin();
-    toast(s.price > 0 ? "Opening secure checkout…" : "Seat reserved. See you there.");
+    if (s.soldOut) return toast("Session not available.");
+    bookMutation.mutate(Number(s.id));
   };
-  const clearFilters = () => { setQ(""); setCat("all"); setMode("all"); };
+
+  const clearFilters = () => { setQInput(""); setQ(""); setCat("all"); setMode("all"); };
+
+  const countLabel = isLoading
+    ? "Finding sessions…"
+    : isError
+      ? "Sessions are unavailable right now"
+      : count === 0
+        ? "No sessions match your filters"
+        : `${count} session${count === 1 ? "" : "s"} you can join this week`;
 
   return (
     <section id="sessions" className="wrap" style={{ paddingTop: 72, paddingBottom: 30, scrollMarginTop: 8 }}>
@@ -64,7 +98,7 @@ export default function Sessions() {
 
       <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 999, padding: "7px 7px 7px 18px", boxShadow: "var(--sh-sm)", marginBottom: 18, maxWidth: 560 }}>
         <span aria-hidden style={{ color: "var(--muted)", display: "flex" }}><Search /></span>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sessions, teachers or topics" aria-label="Search sessions" style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", font: "400 .98rem 'Hanken Grotesk'", color: "var(--ink)", padding: "8px 0" }} />
+        <input value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder="Search sessions, teachers or topics" aria-label="Search sessions" style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", font: "400 .98rem 'Hanken Grotesk'", color: "var(--ink)", padding: "8px 0" }} />
         <button type="submit" className="search-btn focus-lime" style={{ height: 42, padding: "0 22px", border: "none", borderRadius: 999, background: "var(--green-deep)", color: "var(--on-green)", font: "600 .88rem 'Hanken Grotesk'", cursor: "pointer", whiteSpace: "nowrap" }}>Search</button>
       </form>
 
@@ -91,7 +125,17 @@ export default function Sessions() {
         </div>
       </div>
 
-      {count > 0 ? (
+      {isLoading ? (
+        <div className="sess-grid">
+          {Array.from({ length: 8 }).map((_, i) => <SessionSkeleton key={i} />)}
+        </div>
+      ) : isError ? (
+        <div style={{ textAlign: "center", padding: "60px 24px", border: "1px dashed var(--line-2)", borderRadius: "var(--r)", background: "var(--surface)" }}>
+          <h3 style={{ fontWeight: 600, fontSize: "1.4rem", color: "var(--ink)", margin: "0 0 8px" }}>Sessions are not available right now</h3>
+          <p style={{ color: "var(--muted)", margin: "0 auto 20px", maxWidth: "36ch" }}>We could not reach the schedule. Check your connection and try again.</p>
+          <button onClick={() => refetch()} className="google-btn" style={{ height: 44, padding: "0 22px", border: "1px solid var(--line-2)", borderRadius: 999, background: "var(--surface)", color: "var(--ink)", font: "600 .9rem 'Hanken Grotesk'", cursor: "pointer" }}>Try again</button>
+        </div>
+      ) : count > 0 ? (
         <div ref={grid} className="sess-grid">
           {filtered.map((s) => (
             <SessionCard key={s.id} s={s} onBook={onBook} />

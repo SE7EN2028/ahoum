@@ -16,6 +16,33 @@ export interface AuthResult {
   user: Me;
 }
 
+export interface ApiSession {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  mode: string;
+  location: string;
+  price: string;
+  capacity: number;
+  starts_at: string;
+  duration_min: number;
+  image: string | null;
+  image_url: string;
+  status: string;
+  seats_left: number;
+  is_sold_out: boolean;
+  creator: { id: number; name: string; initials: string; verified: boolean };
+  created_at: string;
+}
+
+export interface ApiBooking {
+  id: number;
+  session: ApiSession;
+  status: "ACTIVE" | "CANCELLED" | "COMPLETED";
+  created_at: string;
+}
+
 type Opts = Omit<RequestInit, "body"> & { token?: string; body?: unknown };
 
 export async function api<T>(path: string, opts: Opts = {}): Promise<T> {

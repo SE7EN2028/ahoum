@@ -55,6 +55,8 @@ button { font-family: inherit; }
 .sess-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes skpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.sk { background: var(--line); border-radius: 8px; animation: skpulse 1.2s var(--ease) infinite; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes spinj { to { transform: rotate(360deg); } }
 
