@@ -20,6 +20,7 @@ class Profile(models.Model):
     display_name = models.CharField(max_length=120, blank=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     bio = models.TextField(blank=True)
+    verified = models.BooleanField(default=False)  # verified teacher badge
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

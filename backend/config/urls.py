@@ -15,10 +15,12 @@ urlpatterns = [
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # accounts: google auth, dev-login, /api/me
     path("api/", include("accounts.urls")),
+    # sessions + bookings (Phase 3)
+    path("api/", include("sessions.urls")),
+    path("api/", include("bookings.urls")),
     # OpenAPI schema + docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
-    # Phase 3: path("api/", include("sessions.urls")), include("bookings.urls")
 ]
 
 # Serve uploaded media via Django in DEBUG; nginx serves it in prod.

@@ -28,6 +28,7 @@ services:
       db:
         condition: service_healthy
     volumes:
+      - ./backend:/app            # dev: hot-reload via runserver (named volumes below override subpaths)
       - media:/app/media
       - staticfiles:/app/staticfiles
     expose:

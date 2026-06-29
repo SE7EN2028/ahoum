@@ -8,6 +8,19 @@ class SessionStatus(models.TextChoices):
     CANCELLED = "CANCELLED", "Cancelled"
 
 
+class Category(models.TextChoices):
+    MEDITATION = "MEDITATION", "Meditation"
+    BREATHWORK = "BREATHWORK", "Breathwork"
+    YOGA = "YOGA", "Yoga"
+    SOUND = "SOUND", "Sound healing"
+    COACHING = "COACHING", "Coaching"
+
+
+class Mode(models.TextChoices):
+    ONLINE = "ONLINE", "Online"
+    IN_PERSON = "IN_PERSON", "In person"
+
+
 class Session(models.Model):
     """A bookable session owned by a creator. Only PUBLISHED sessions are public."""
 
@@ -18,11 +31,15 @@ class Session(models.Model):
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    category = models.CharField(max_length=16, choices=Category.choices, default=Category.MEDITATION)
+    mode = models.CharField(max_length=16, choices=Mode.choices, default=Mode.ONLINE)
+    location = models.CharField(max_length=160, blank=True, default="Online")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     capacity = models.PositiveIntegerField(default=1)
     starts_at = models.DateTimeField()
     duration_min = models.PositiveIntegerField(default=60)
     image = models.ImageField(upload_to="sessions/", blank=True, null=True)
+    image_url = models.URLField(blank=True)  # external image (seed / before MinIO upload)
     status = models.CharField(
         max_length=16, choices=SessionStatus.choices, default=SessionStatus.DRAFT
     )

@@ -1,31 +1,7 @@
-@import "tailwindcss";
-
-/* Starter design tokens (from the plan). Will be reconciled with the
-   design.md / HTML design once provided. */
-@theme {
-  --color-bg: oklch(0.986 0.003 270);
-  --color-surface: oklch(1 0 0);
-  --color-ink: oklch(0.23 0.02 275);
-  --color-ink-muted: oklch(0.46 0.02 275);
-  --color-border: oklch(0.905 0.008 275);
-  --color-accent: oklch(0.45 0.12 275);
-  --color-accent-soft: oklch(0.952 0.028 275);
-  --color-clay: oklch(0.58 0.13 48);
-  --color-success: oklch(0.52 0.11 150);
-
-  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-}
+@import "./styles/theme.css";
 
 html,
 body,
 #root {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
 }

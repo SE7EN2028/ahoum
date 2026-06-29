@@ -13,6 +13,9 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
     python manage.py createsuperuser --noinput 2>/dev/null || true
 fi
 
+echo "[entrypoint] seeding demo catalog..."
+python manage.py seed_demo || true
+
 if [ "$DJANGO_DEBUG" = "1" ]; then
     echo "[entrypoint] starting Django dev server on :8000"
     exec python manage.py runserver 0.0.0.0:8000
