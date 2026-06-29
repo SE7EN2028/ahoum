@@ -99,22 +99,5 @@ export interface EnrichedSession extends Session {
   modeLabel: string;
   seatText: string;
   imgUrl: string;
-}
-
-export function enrich(s: Session): EnrichedSession {
-  return {
-    ...s,
-    isFree: s.price === 0,
-    isPaid: s.price > 0,
-    priceLabel: s.price === 0 ? "Free" : inr(s.price),
-    soldOut: s.seatsLeft <= 0,
-    bookable: s.seatsLeft > 0,
-    urgent: s.seatsLeft > 0 && s.seatsLeft <= 3,
-    roomy: s.seatsLeft > 3,
-    isOnline: s.mode === "online",
-    inPerson: s.mode === "in_person",
-    modeLabel: s.mode === "online" ? "Online" : "In person",
-    seatText: s.seatsLeft <= 0 ? "Sold out" : s.seatsLeft <= 3 ? `Only ${s.seatsLeft} left` : `${s.seatsLeft} seats left`,
-    imgUrl: img(s.img, 640, 440),
-  };
+  creatorId: number;
 }

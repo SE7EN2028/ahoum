@@ -12,6 +12,8 @@ interface AppState {
   userName: string;
   userInitials: string;
   signingIn: boolean;
+  authReady: boolean;
+  setUser: (me: Me) => void;
   // ui
   loginOpen: boolean;
   mobileOpen: boolean;
@@ -42,6 +44,7 @@ export function useApp() {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Me | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [authReady, setAuthReady] = useState(() => !localStorage.getItem(TOKEN_KEY));
   const [signingIn, setSigningIn] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -64,7 +67,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // restore session
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setAuthReady(true);
+      return;
+    }
     api<Me>("/me/", { token })
       .then(setUser)
       .catch(() => {
@@ -72,7 +78,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem(REFRESH_KEY);
         setToken(null);
         setUser(null);
-      });
+      })
+      .finally(() => setAuthReady(true));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const devLogin = useCallback(async () => {
@@ -139,6 +146,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     userName: meta.name,
     userInitials: meta.initials,
     signingIn,
+    authReady,
+    setUser,
     loginOpen,
     mobileOpen,
     menuOpen,

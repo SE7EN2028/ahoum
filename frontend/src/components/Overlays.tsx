@@ -3,7 +3,7 @@ import { useApp } from "../auth/AppContext";
 import { Check, Close, GoogleG, Logo } from "../lib/icons";
 
 const stop = (e: MouseEvent) => e.stopPropagation();
-const NAV = [["#about", "About"], ["#sessions", "Sessions"], ["#practices", "Practices"], ["#stories", "Stories"], ["#faq", "FAQ"]];
+const NAV = [["/#about", "About"], ["/#sessions", "Sessions"], ["/#practices", "Practices"], ["/#stories", "Stories"], ["/#faq", "FAQ"]];
 
 export default function Overlays() {
   const app = useApp();
@@ -14,8 +14,8 @@ export default function Overlays() {
       {app.menuOpen && app.user && (
         <div onClick={app.closeMenu} style={{ position: "fixed", inset: 0, zIndex: 55 }}>
           <div onClick={stop} style={{ position: "absolute", top: 74, right: 30, width: 190, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, boxShadow: "var(--sh-lg)", padding: 7 }}>
-            <a href="#sessions" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Your dashboard</a>
-            <a href="#about" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Profile</a>
+            <a href="/dashboard" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Your dashboard</a>
+            <a href="/dashboard" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Profile</a>
             <div style={{ height: 1, background: "var(--line)", margin: "5px 8px" }} />
             <button onClick={app.logout} className="logout-link" style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 12px", border: "none", borderRadius: 9, background: "transparent", color: "var(--error)", font: "500 .9rem 'Hanken Grotesk'", cursor: "pointer" }}>Log out</button>
           </div>

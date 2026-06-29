@@ -7,7 +7,6 @@ import Stories from "../components/Stories";
 import Faq from "../components/Faq";
 import BeginCTA from "../components/BeginCTA";
 import Footer from "../components/Footer";
-import Overlays from "../components/Overlays";
 
 export default function Home() {
   return (
@@ -21,7 +20,6 @@ export default function Home() {
       <Faq />
       <BeginCTA />
       <Footer />
-      <Overlays />
     </div>
   );
 }

@@ -39,6 +39,14 @@ export default function Sessions() {
     placeholderData: keepPreviousData,
   });
 
+  // know which sessions the signed-in user already booked, to mark cards
+  const { data: activeBookings } = useQuery({
+    queryKey: ["bookings", "active"],
+    queryFn: () => api<ApiBooking[]>("/bookings/?status=active", { token: token ?? undefined }),
+    enabled: !!user,
+  });
+  const bookedIds = new Set((activeBookings ?? []).map((b) => b.session.id));
+
   const filtered = (data ?? []).map(mapSession);
   const count = filtered.length;
   const filterKey = `${cat}|${mode}|${filtered.map((s) => s.id).join(",")}`;
@@ -138,7 +146,7 @@ export default function Sessions() {
       ) : count > 0 ? (
         <div ref={grid} className="sess-grid">
           {filtered.map((s) => (
-            <SessionCard key={s.id} s={s} onBook={onBook} />
+            <SessionCard key={s.id} s={s} onBook={onBook} owned={!!user && s.creatorId === user.id} booked={bookedIds.has(Number(s.id))} />
           ))}
         </div>
       ) : (

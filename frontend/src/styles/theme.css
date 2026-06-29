@@ -53,6 +53,7 @@ button { font-family: inherit; }
 .disc-grid { display: grid; grid-template-columns: 380px 1fr; gap: 40px; }
 .hero-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 36px; }
 .sess-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
+.detail-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; align-items: start; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes skpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -69,6 +70,7 @@ button { font-family: inherit; }
   .feat-grid { grid-template-columns: 1fr; }
   .disc-grid { grid-template-columns: 1fr; gap: 24px; }
   .hero-bottom { flex-direction: column; align-items: flex-start; gap: 22px; }
+  .detail-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 /* ---- hover / focus helpers (inline styles can't express pseudo states) ---- */

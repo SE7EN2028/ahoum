@@ -50,6 +50,7 @@ export function mapSession(s: ApiSession): EnrichedSession {
     modeLabel: isOnline ? "Online" : "In person",
     seatText: soldOut ? "Sold out" : seatsLeft <= 3 ? `Only ${seatsLeft} left` : `${seatsLeft} seats left`,
     imgUrl: s.image || s.image_url,
+    creatorId: s.creator.id,
   };
 }
 

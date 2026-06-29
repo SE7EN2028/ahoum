@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import type { EnrichedSession } from "../data/content";
-import { ArrowRight, Calendar, Clock, Pin, Verified, Video } from "../lib/icons";
+import { ArrowRight, Calendar, Check, Clock, Pin, Verified, Video } from "../lib/icons";
 
-export default function SessionCard({ s, onBook }: { s: EnrichedSession; onBook: (s: EnrichedSession) => void }) {
+export default function SessionCard({ s, onBook, owned = false, booked = false }: { s: EnrichedSession; onBook: (s: EnrichedSession) => void; owned?: boolean; booked?: boolean }) {
   return (
     <article className="sess-card" style={{ display: "flex", flexDirection: "column", background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
       <div style={{ position: "relative", aspectRatio: "16 / 10", overflow: "hidden", background: "var(--paper)", margin: 10, marginBottom: 0, borderRadius: 12 }}>
@@ -21,7 +22,7 @@ export default function SessionCard({ s, onBook }: { s: EnrichedSession; onBook:
           {s.verified && <span aria-label="Verified teacher" style={{ color: "var(--green)", display: "flex" }}><Verified /></span>}
         </div>
 
-        <a href="#sessions" className="title-link" style={{ fontWeight: 600, fontSize: "1.18rem", lineHeight: 1.18, color: "var(--ink)", textDecoration: "none", letterSpacing: "-.005em" }}>{s.title}</a>
+        <Link to={`/sessions/${s.id}`} className="title-link" style={{ fontWeight: 600, fontSize: "1.18rem", lineHeight: 1.18, color: "var(--ink)", textDecoration: "none", letterSpacing: "-.005em" }}>{s.title}</Link>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px 14px", color: "var(--muted)", fontSize: ".82rem" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Calendar />{s.date} · {s.time}</span>
@@ -43,7 +44,14 @@ export default function SessionCard({ s, onBook }: { s: EnrichedSession; onBook:
             )}
           </div>
 
-          {s.bookable ? (
+          {owned ? (
+            <Link to="/dashboard" style={{ height: 40, lineHeight: "38px", padding: "0 16px", border: "1px solid var(--line-2)", borderRadius: 999, background: "var(--surface)", color: "var(--ink-2)", font: "600 .82rem 'Hanken Grotesk'", textDecoration: "none", whiteSpace: "nowrap" }}>Your session</Link>
+          ) : booked ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 16px", borderRadius: 999, background: "oklch(0.95 0.04 150)", color: "var(--green)", font: "600 .82rem 'Hanken Grotesk'", whiteSpace: "nowrap" }}>
+              <span style={{ display: "grid", placeItems: "center", width: 20, height: 20, borderRadius: 999, background: "var(--green)", color: "#fff" }}><Check size={11} /></span>
+              Booked
+            </span>
+          ) : s.bookable ? (
             <button onClick={() => onBook(s)} className="u-lift focus-lime" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 40, padding: "0 7px 0 16px", border: "none", borderRadius: 999, background: "var(--green-deep)", color: "var(--on-green)", font: "600 .82rem 'Hanken Grotesk'", cursor: "pointer", whiteSpace: "nowrap" }}>
               Book
               <span style={{ display: "grid", placeItems: "center", width: 26, height: 26, borderRadius: 999, background: "var(--lime)", color: "var(--ink)" }}><ArrowRight size={13} stroke={2.2} /></span>
