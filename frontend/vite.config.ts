@@ -12,10 +12,11 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 5173,
-    // dev proxy so `npm run dev` (outside docker) reaches the API
+    port: 5174,
+    strictPort: true,
+    // dev proxy: /api -> the running docker nginx (:80) -> backend
     proxy: {
-      "/api": "http://localhost:8000",
+      "/api": "http://localhost:80",
     },
   },
 });

@@ -1,3 +1,10 @@
-from django.contrib import admin  # noqa: F401
+from django.contrib import admin
 
-# Phase 3: register Booking.
+from .models import Booking
+
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ("user", "session", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("user__username", "user__email", "session__title")

@@ -1,7 +1,11 @@
-# Phase 0 — bootable skeleton. Auth/JWT/schema deps land in Phase 1-2.
 Django==5.1.4
 djangorestframework==3.15.2
 django-cors-headers==4.6.0
+djangorestframework-simplejwt==5.3.1
+drf-spectacular==0.28.0
 psycopg[binary]==3.2.3
+Pillow==11.0.0
+requests==2.32.3
 gunicorn==23.0.0
 python-dotenv==1.0.1
+# Phase 2 adds django-allauth for Google OAuth.
