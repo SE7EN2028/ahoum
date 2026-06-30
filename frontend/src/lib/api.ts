@@ -42,6 +42,7 @@ export interface ApiBooking {
   id: number;
   session: ApiSession;
   status: "ACTIVE" | "CANCELLED" | "COMPLETED";
+  is_paid: boolean;
   created_at: string;
 }
 

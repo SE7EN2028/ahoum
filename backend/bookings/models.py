@@ -26,6 +26,7 @@ class Booking(models.Model):
     status = models.CharField(
         max_length=16, choices=BookingStatus.choices, default=BookingStatus.ACTIVE
     )
+    is_paid = models.BooleanField(default=False)  # set true once Stripe payment is verified
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

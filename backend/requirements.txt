@@ -8,4 +8,5 @@ Pillow==11.0.0
 requests==2.32.3
 gunicorn==23.0.0
 python-dotenv==1.0.1
+stripe==11.4.0
 # Phase 2 adds django-allauth for Google OAuth.

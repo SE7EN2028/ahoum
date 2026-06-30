@@ -18,6 +18,8 @@ urlpatterns = [
     # sessions + bookings (Phase 3)
     path("api/", include("sessions.urls")),
     path("api/", include("bookings.urls")),
+    # payments (Stripe)
+    path("api/", include("payments.urls")),
     # OpenAPI schema + docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),

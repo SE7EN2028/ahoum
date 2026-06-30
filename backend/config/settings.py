@@ -147,3 +147,10 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", "")
 OAUTH_REDIRECT_URI = env("OAUTH_REDIRECT_URI", "http://localhost/auth/callback")
+
+# --- Stripe (test mode) ---
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_CURRENCY = env("STRIPE_CURRENCY", "inr")
+# where Stripe redirects the user back to after checkout
+FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", "http://localhost")

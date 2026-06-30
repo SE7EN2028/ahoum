@@ -6,6 +6,7 @@ import { useApp } from "../auth/AppContext";
 import { catDefs, modeDefs, type EnrichedSession } from "../data/content";
 import { api, type ApiBooking, type ApiSession } from "../lib/api";
 import { bookingErrorMessage, mapSession } from "../lib/sessions";
+import { createCheckout } from "../lib/payments";
 import { Search } from "../lib/icons";
 import { Eyebrow } from "./ui";
 import SessionCard from "./SessionCard";
@@ -82,7 +83,15 @@ export default function Sessions() {
   const onBook = (s: EnrichedSession) => {
     if (!user) return openLogin();
     if (s.soldOut) return toast("Session not available.");
-    bookMutation.mutate(Number(s.id));
+    if (s.isFree) {
+      bookMutation.mutate(Number(s.id));
+      return;
+    }
+    // paid session -> Stripe Checkout
+    toast("Redirecting to secure checkout…");
+    createCheckout(Number(s.id))
+      .then((r) => { window.location.href = r.checkout_url; })
+      .catch((e: Error) => toast(e.message));
   };
 
   const clearFilters = () => { setQInput(""); setQ(""); setCat("all"); setMode("all"); };

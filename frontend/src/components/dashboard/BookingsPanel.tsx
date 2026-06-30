@@ -75,6 +75,9 @@ export default function BookingsPanel() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5 }}>
                     <span className="mono" style={{ fontSize: ".64rem", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)" }}>{s.catLabel}</span>
                     <StatusBadge status={b.status} />
+                    {b.is_paid && (
+                      <span style={{ display: "inline-flex", alignItems: "center", height: 24, padding: "0 11px", borderRadius: 999, background: "oklch(0.95 0.04 150)", color: "var(--green)", font: "600 .7rem 'Hanken Grotesk'" }}>Paid</span>
+                    )}
                   </div>
                   <Link to={`/sessions/${s.id}`} className="title-link" style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--ink)", textDecoration: "none" }}>{s.title}</Link>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", color: "var(--muted)", fontSize: ".8rem", marginTop: 5 }}>

@@ -1,9 +1,10 @@
-import type { ReactNode } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApp } from "../auth/AppContext";
 import { api, type ApiBooking, type ApiSession } from "../lib/api";
 import { bookingErrorMessage, mapSession } from "../lib/sessions";
+import { confirmPayment, createCheckout } from "../lib/payments";
 import { ArrowLeft, ArrowRight, Calendar, Check, Clock, Close, Pin, Verified, Video } from "../lib/icons";
 import SiteHeader from "../components/SiteHeader";
 import Footer from "../components/Footer";
@@ -84,6 +85,35 @@ export default function SessionDetail() {
     onError: (err: Error) => toast(bookingErrorMessage(err.message)),
   });
 
+  // Stripe redirect + return handling
+  const [params, setParams] = useSearchParams();
+  const [redirecting, setRedirecting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const handledReturn = useRef(false);
+
+  useEffect(() => {
+    if (handledReturn.current) return;
+    const pay = params.get("payment");
+    const cs = params.get("cs");
+    if (!pay) return;
+    handledReturn.current = true;
+    if (pay === "success" && cs) {
+      setConfirming(true);
+      confirmPayment(cs)
+        .then((res) => {
+          toast(res.booked ? "Payment received. Your seat is booked." : "Payment processing — your seat will appear shortly.");
+          qc.invalidateQueries({ queryKey: ["session", id] });
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+          qc.invalidateQueries({ queryKey: ["sessions"] });
+        })
+        .catch((e: Error) => toast(e.message))
+        .finally(() => { setConfirming(false); setParams({}, { replace: true }); });
+    } else if (pay === "cancelled") {
+      toast("Payment cancelled. No booking made.");
+      setParams({}, { replace: true });
+    }
+  }, [params, id, qc, toast, setParams]);
+
   if (isLoading) return <Shell><DetailSkeleton /></Shell>;
   if (isError || !data) return <Shell><NotAvailable /></Shell>;
 
@@ -93,7 +123,15 @@ export default function SessionDetail() {
   const book = () => {
     if (!user) return openLogin();
     if (s.soldOut) return toast("Session not available.");
-    bookMutation.mutate();
+    if (s.isFree) {
+      bookMutation.mutate();
+      return;
+    }
+    // paid session -> Stripe Checkout
+    setRedirecting(true);
+    createCheckout(Number(id))
+      .then((r) => { window.location.href = r.checkout_url; })
+      .catch((e: Error) => { toast(e.message); setRedirecting(false); });
   };
 
   return (
@@ -138,6 +176,12 @@ export default function SessionDetail() {
           </div>
 
           {/* booking action */}
+          {confirming && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 14, padding: "10px 16px", borderRadius: 999, background: "var(--paper)", border: "1px solid var(--line)", color: "var(--ink-2)", font: "500 .88rem 'Hanken Grotesk'" }}>
+              <span style={{ width: 16, height: 16, border: "2px solid var(--line-2)", borderTopColor: "var(--green)", borderRadius: 999, display: "inline-block", animation: "spinj .7s linear infinite" }} />
+              Confirming your payment…
+            </div>
+          )}
           {owned ? (
             <Link to="/dashboard" className="u-lift" style={{ display: "inline-flex", alignItems: "center", gap: 10, height: 52, padding: "0 24px", borderRadius: 999, background: "var(--surface)", border: "1px solid var(--line-2)", color: "var(--ink)", font: "600 .95rem 'Hanken Grotesk'", textDecoration: "none" }}>
               Your session · Manage
@@ -150,14 +194,16 @@ export default function SessionDetail() {
           ) : s.soldOut ? (
             <button disabled style={{ height: 52, padding: "0 26px", border: "1px solid var(--line-2)", borderRadius: 999, background: "var(--paper)", color: "var(--muted)", font: "600 .95rem 'Hanken Grotesk'", cursor: "not-allowed" }}>Session not available</button>
           ) : (
-            <button onClick={book} disabled={bookMutation.isPending} className="u-lift focus-lime" style={{ display: "inline-flex", alignItems: "center", gap: 12, height: 52, padding: "0 7px 0 26px", border: "none", borderRadius: 999, background: "var(--green-deep)", color: "var(--on-green)", font: "600 .95rem 'Hanken Grotesk'", cursor: bookMutation.isPending ? "default" : "pointer" }}>
-              {bookMutation.isPending ? "Booking…" : "Book now"}
+            <button onClick={book} disabled={bookMutation.isPending || redirecting} className="u-lift focus-lime" style={{ display: "inline-flex", alignItems: "center", gap: 12, height: 52, padding: "0 7px 0 26px", border: "none", borderRadius: 999, background: "var(--green-deep)", color: "var(--on-green)", font: "600 .95rem 'Hanken Grotesk'", cursor: bookMutation.isPending || redirecting ? "default" : "pointer" }}>
+              {redirecting ? "Redirecting to checkout…" : bookMutation.isPending ? "Booking…" : "Book now"}
               <span style={{ display: "grid", placeItems: "center", width: 38, height: 38, borderRadius: 999, background: "var(--lime)", color: "var(--ink)" }}><ArrowRight size={16} stroke={2} /></span>
             </button>
           )}
-          {!user && (
+          {!user ? (
             <p style={{ color: "var(--muted)", fontSize: ".82rem", margin: "12px 0 0" }}>You'll be asked to sign in first.</p>
-          )}
+          ) : !owned && !isBooked && s.isPaid ? (
+            <p style={{ color: "var(--muted)", fontSize: ".82rem", margin: "12px 0 0" }}>Secure payment via Stripe. You'll be booked once payment succeeds.</p>
+          ) : null}
 
           {/* description */}
           {s.title && (

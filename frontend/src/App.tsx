@@ -5,10 +5,12 @@ import SessionDetail from "./pages/SessionDetail";
 import Dashboard from "./pages/Dashboard";
 import AuthCallback from "./pages/AuthCallback";
 import Overlays from "./components/Overlays";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   return (
     <AppProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sessions/:id" element={<SessionDetail />} />
