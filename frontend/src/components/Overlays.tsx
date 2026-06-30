@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { Link } from "react-router-dom";
 import { useApp } from "../auth/AppContext";
 import { Check, Close, GoogleG, Logo } from "../lib/icons";
 
@@ -14,8 +15,8 @@ export default function Overlays() {
       {app.menuOpen && app.user && (
         <div onClick={app.closeMenu} style={{ position: "fixed", inset: 0, zIndex: 55 }}>
           <div onClick={stop} style={{ position: "absolute", top: 74, right: 30, width: 190, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 14, boxShadow: "var(--sh-lg)", padding: 7 }}>
-            <a href="/dashboard" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Your dashboard</a>
-            <a href="/dashboard" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Profile</a>
+            <Link to="/dashboard" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Your dashboard</Link>
+            <Link to="/dashboard#profile" onClick={app.closeMenu} className="menu-link" style={{ display: "block", padding: "10px 12px", borderRadius: 9, color: "var(--ink)", textDecoration: "none", font: "500 .9rem 'Hanken Grotesk'" }}>Profile</Link>
             <div style={{ height: 1, background: "var(--line)", margin: "5px 8px" }} />
             <button onClick={app.logout} className="logout-link" style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 12px", border: "none", borderRadius: 9, background: "transparent", color: "var(--error)", font: "500 .9rem 'Hanken Grotesk'", cursor: "pointer" }}>Log out</button>
           </div>

@@ -19,10 +19,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function AttendeesList({ sessionId }: { sessionId: number }) {
-  const { token } = useApp();
   const { data, isLoading } = useQuery({
     queryKey: ["attendees", sessionId],
-    queryFn: () => api<Attendee[]>(`/sessions/${sessionId}/bookings/`, { token: token ?? undefined }),
+    queryFn: () => api<Attendee[]>(`/sessions/${sessionId}/bookings/`, { auth: true }),
   });
   if (isLoading) return <p style={{ color: "var(--muted)", fontSize: ".85rem", margin: "10px 0 0" }}>Loading attendees…</p>;
   const active = (data ?? []).filter((a) => a.status === "ACTIVE");
@@ -41,7 +40,7 @@ function AttendeesList({ sessionId }: { sessionId: number }) {
 }
 
 export default function CreatorPanel() {
-  const { token, toast } = useApp();
+  const { toast } = useApp();
   const qc = useQueryClient();
   const [dialog, setDialog] = useState<{ session: ApiSession | null } | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -49,7 +48,7 @@ export default function CreatorPanel() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["sessions", "mine"],
-    queryFn: () => api<ApiSession[]>("/sessions/?mine=1", { token: token ?? undefined }),
+    queryFn: () => api<ApiSession[]>("/sessions/?mine=1", { auth: true }),
   });
 
   const invalidate = () => {
@@ -58,7 +57,7 @@ export default function CreatorPanel() {
 
   const createOrUpdate = useMutation({
     mutationFn: ({ id, payload }: { id?: number; payload: SessionPayload }) =>
-      api<ApiSession>(id ? `/sessions/${id}/` : "/sessions/", { method: id ? "PATCH" : "POST", token: token ?? undefined, body: payload }),
+      api<ApiSession>(id ? `/sessions/${id}/` : "/sessions/", { method: id ? "PATCH" : "POST", auth: true, body: payload }),
     onSuccess: (_d, vars) => {
       toast(vars.id ? "Session updated." : "Session created.");
       setDialog(null);
@@ -68,13 +67,13 @@ export default function CreatorPanel() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) => api<ApiSession>(`/sessions/${id}/`, { method: "PATCH", token: token ?? undefined, body: { status } }),
+    mutationFn: ({ id, status }: { id: number; status: string }) => api<ApiSession>(`/sessions/${id}/`, { method: "PATCH", auth: true, body: { status } }),
     onSuccess: () => { toast("Session updated."); invalidate(); },
     onError: (e: Error) => toast(e.message),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => api<void>(`/sessions/${id}/`, { method: "DELETE", token: token ?? undefined }),
+    mutationFn: (id: number) => api<void>(`/sessions/${id}/`, { method: "DELETE", auth: true }),
     onSuccess: () => { toast("Session deleted."); setConfirmDelete(null); invalidate(); },
     onError: (e: Error) => toast(e.message),
   });

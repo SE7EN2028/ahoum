@@ -14,7 +14,7 @@ import SessionSkeleton from "./SessionSkeleton";
 const prefersReduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function Sessions() {
-  const { user, token, openLogin, toast } = useApp();
+  const { user, openLogin, toast } = useApp();
   const qc = useQueryClient();
   const [qInput, setQInput] = useState("");
   const [q, setQ] = useState("");
@@ -42,7 +42,7 @@ export default function Sessions() {
   // know which sessions the signed-in user already booked, to mark cards
   const { data: activeBookings } = useQuery({
     queryKey: ["bookings", "active"],
-    queryFn: () => api<ApiBooking[]>("/bookings/?status=active", { token: token ?? undefined }),
+    queryFn: () => api<ApiBooking[]>("/bookings/?status=active", { auth: true }),
     enabled: !!user,
   });
   const bookedIds = new Set((activeBookings ?? []).map((b) => b.session.id));
@@ -70,7 +70,7 @@ export default function Sessions() {
 
   const bookMutation = useMutation({
     mutationFn: (sessionId: number) =>
-      api<ApiBooking>("/bookings/", { method: "POST", token: token ?? undefined, body: { session_id: sessionId } }),
+      api<ApiBooking>("/bookings/", { method: "POST", auth: true, body: { session_id: sessionId } }),
     onSuccess: () => {
       toast("Seat reserved. See you there.");
       qc.invalidateQueries({ queryKey: ["sessions"] });

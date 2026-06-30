@@ -57,7 +57,7 @@ const MetaRow = ({ icon, children }: { icon: ReactNode; children: ReactNode }) =
 export default function SessionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, token, openLogin, toast } = useApp();
+  const { user, openLogin, toast } = useApp();
   const qc = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
@@ -68,13 +68,13 @@ export default function SessionDetail() {
 
   const { data: activeBookings } = useQuery({
     queryKey: ["bookings", "active"],
-    queryFn: () => api<ApiBooking[]>("/bookings/?status=active", { token: token ?? undefined }),
+    queryFn: () => api<ApiBooking[]>("/bookings/?status=active", { auth: true }),
     enabled: !!user,
   });
   const isBooked = !!activeBookings?.some((b) => b.session.id === Number(id));
 
   const bookMutation = useMutation({
-    mutationFn: () => api<ApiBooking>("/bookings/", { method: "POST", token: token ?? undefined, body: { session_id: Number(id) } }),
+    mutationFn: () => api<ApiBooking>("/bookings/", { method: "POST", auth: true, body: { session_id: Number(id) } }),
     onSuccess: () => {
       toast("Seat reserved. See you there.");
       qc.invalidateQueries({ queryKey: ["session", id] });

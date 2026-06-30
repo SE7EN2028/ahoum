@@ -4,7 +4,7 @@ import { useApp } from "../../auth/AppContext";
 import { api, type Me } from "../../lib/api";
 
 export default function ProfilePanel() {
-  const { user, token, setUser, toast } = useApp();
+  const { user, setUser, toast } = useApp();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [displayName, setDisplayName] = useState(user?.display_name ?? "");
@@ -15,7 +15,7 @@ export default function ProfilePanel() {
 
   const save = useMutation({
     mutationFn: () => {
-      const opts = { method: "PATCH" as const, token: token ?? undefined };
+      const opts = { method: "PATCH" as const, auth: true };
       if (avatarFile) {
         const fd = new FormData();
         fd.append("display_name", displayName);

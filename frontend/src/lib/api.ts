@@ -1,3 +1,5 @@
+import { authStore } from "./authStore";
+
 export const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 export interface Me {
@@ -43,21 +45,40 @@ export interface ApiBooking {
   created_at: string;
 }
 
-type Opts = Omit<RequestInit, "body"> & { token?: string; body?: unknown };
+type Opts = Omit<RequestInit, "body"> & { token?: string; auth?: boolean; body?: unknown };
 
 export async function api<T>(path: string, opts: Opts = {}): Promise<T> {
-  const { token, body, headers, ...rest } = opts;
-  const h: Record<string, string> = { ...(headers as Record<string, string>) };
+  const { token, auth, body, headers, ...rest } = opts;
+  const authed = auth || !!token;
+
   let payload: BodyInit | undefined;
+  const baseHeaders: Record<string, string> = { ...(headers as Record<string, string>) };
   if (body instanceof FormData) {
     payload = body;
   } else if (body !== undefined) {
-    h["Content-Type"] = "application/json";
+    baseHeaders["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
   }
-  if (token) h["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...rest, headers: h, body: payload });
+  const send = (bearer?: string) => {
+    const h = { ...baseHeaders };
+    const access = bearer ?? (authed ? authStore.getAccess() ?? token : undefined);
+    if (access) h["Authorization"] = `Bearer ${access}`;
+    return fetch(`${API_BASE}${path}`, { ...rest, headers: h, body: payload });
+  };
+
+  let res = await send();
+
+  // transparent refresh: on 401, swap the refresh token for a new access and retry once
+  if (res.status === 401 && authed && authStore.getRefresh()) {
+    try {
+      const fresh = await authStore.refresh();
+      res = await send(fresh);
+    } catch {
+      /* refresh failed; fall through to the 401 error below */
+    }
+  }
+
   if (!res.ok) {
     let detail = `Request failed (${res.status})`;
     try {

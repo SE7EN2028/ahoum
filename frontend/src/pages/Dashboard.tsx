@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { useApp } from "../auth/AppContext";
 import SiteHeader from "../components/SiteHeader";
 import Footer from "../components/Footer";
@@ -20,14 +21,22 @@ const LABEL: Record<string, string> = { sessions: "My sessions", bookings: "Book
 
 export default function Dashboard() {
   const { user, authReady, openLogin } = useApp();
+  const location = useLocation();
+  const hashTab = location.hash.replace(/^#/, "");
   const isCreator = user?.role === "CREATOR";
   const tabs = isCreator ? ["sessions", "bookings", "profile"] : ["bookings", "profile"];
+  const tabsKey = tabs.join(",");
   // null until the user picks; default derives from role (which loads async)
   const [tab, setTab] = useState<string | null>(null);
 
   useEffect(() => {
     if (authReady && !user) openLogin();
   }, [authReady, user, openLogin]);
+
+  // honor a #tab deep-link (e.g. account menu -> /dashboard#profile)
+  useEffect(() => {
+    if (tabs.includes(hashTab)) setTab(hashTab);
+  }, [hashTab, tabsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!authReady) {
     return <Shell><div className="sk" style={{ height: 300, borderRadius: "var(--r)" }} /></Shell>;

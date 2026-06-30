@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { api, nameOf, type AuthResult, type Me } from "../lib/api";
+import { authStore } from "../lib/authStore";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const REDIRECT_URI = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "";
 const TOKEN_KEY = "ahoum_access";
-const REFRESH_KEY = "ahoum_refresh";
 
 interface AppState {
   user: Me | null;
@@ -59,23 +59,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const persist = useCallback((res: AuthResult) => {
-    localStorage.setItem(TOKEN_KEY, res.access);
-    localStorage.setItem(REFRESH_KEY, res.refresh);
+    authStore.setTokens(res.access, res.refresh);
     setToken(res.access);
     setUser(res.user);
   }, []);
 
-  // restore session
+  // force a UI logout when the session can no longer be refreshed
+  useEffect(() => {
+    authStore.onClear(() => {
+      setToken(null);
+      setUser(null);
+    });
+  }, []);
+
+  // restore session (api auto-refreshes the access token on a 401)
   useEffect(() => {
     if (!token) {
       setAuthReady(true);
       return;
     }
-    api<Me>("/me/", { token })
+    api<Me>("/me/", { auth: true })
       .then(setUser)
       .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_KEY);
+        authStore.clear();
         setToken(null);
         setUser(null);
       })
@@ -124,8 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
+    authStore.clear();
     setToken(null);
     setUser(null);
     setMenuOpen(false);

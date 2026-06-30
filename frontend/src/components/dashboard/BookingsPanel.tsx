@@ -22,17 +22,17 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function BookingsPanel() {
-  const { token, toast } = useApp();
+  const { toast } = useApp();
   const qc = useQueryClient();
   const [kind, setKind] = useState<"active" | "past">("active");
 
   const { data, isLoading } = useQuery({
     queryKey: ["bookings", kind],
-    queryFn: () => api<ApiBooking[]>(`/bookings/?status=${kind}`, { token: token ?? undefined }),
+    queryFn: () => api<ApiBooking[]>(`/bookings/?status=${kind}`, { auth: true }),
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (bid: number) => api<ApiBooking>(`/bookings/${bid}/cancel/`, { method: "POST", token: token ?? undefined }),
+    mutationFn: (bid: number) => api<ApiBooking>(`/bookings/${bid}/cancel/`, { method: "POST", auth: true }),
     onSuccess: () => {
       toast("Booking cancelled.");
       qc.invalidateQueries({ queryKey: ["bookings"] });
