@@ -24,6 +24,3 @@ dist/
 *.log
 
 implementation.pdf
-
-# Design reference (source HTML/JS export, not part of the build)
-_design_reference/
